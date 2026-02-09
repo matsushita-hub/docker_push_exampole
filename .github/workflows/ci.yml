@@ -15,7 +15,7 @@ jobs:
 
       - name: Create .env file from Secrets
         run: |
-          echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+          echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" > .env
           echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
           echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
           echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
@@ -38,6 +38,15 @@ jobs:
       - name: Check Containaer Status
         run: docker compose ps
 
+      - name: Slack Notification (Test Job)
+        if: always()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'denger' }}
+          SLACK_TITLE: 'Test Result: ${{ job.status }}'
+          SLACK_MESSAGE: 'テスト工程 (Snyk/Pytest) の結果です。'
+
 
 
   deploy:
@@ -53,14 +62,23 @@ jobs:
           cd ~/file-manager-pro
 
           echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" > .env
-          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" > .env
-          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" > .env
-          echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" > .env
-          echo "MYSQL_HOST=db" > .env
-          echo "REDIS_HOST=redis" > .env
-          echo "CLAMAV_HOST=clamav" > .env
-          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" > .env
+          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+          echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+          echo "MYSQL_HOST=db" >> .env
+          echo "REDIS_HOST=redis" >> .env
+          echo "CLAMAV_HOST=clamav" >> .env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
 
           docker compose down
           docker compose up -d --build
           docker image prune -f
+
+      - name: Slack Notification (Deploy Job)
+        if: always()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'denger' }}
+          SLACK_TITLE: 'Deploy Result: ${{ job.status }}'
+          SLACK_MESSAGE: 'WSLへのデプロイ結果です。'
