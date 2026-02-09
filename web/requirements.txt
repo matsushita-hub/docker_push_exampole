@@ -11,4 +11,4 @@ gunicorn
 werkzeug
 cryptography
 pytest
-pytest-flas
+pytest-flask
