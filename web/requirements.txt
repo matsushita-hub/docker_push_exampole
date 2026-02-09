@@ -1,0 +1,14 @@
+flask
+flask-sqlalchemy
+flask-wtf
+flask-session
+flask-caching
+pymysql
+redis
+clamd
+pillow
+gunicorn
+werkzeug
+cryptography
+pytest
+pytest-flask

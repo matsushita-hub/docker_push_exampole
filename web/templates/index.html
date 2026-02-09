@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head><title>File Manager</title></head>
+<body>
+    <h1>Files</h1>
+    <a href="{{ url_for('upload') }}">Upload New File</a>
+    <hr>
+    <form method="GET">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search files...">
+        <button type="submit">Search</button>
+    </form>
+    <ul>
+        {% for file in files %}
+        <li>{{ file.original_name }} (Uploaded: {{ file.upload_date }})</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+

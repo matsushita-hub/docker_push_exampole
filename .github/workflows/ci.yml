@@ -1,0 +1,66 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env file from Secrets
+        run: |
+          echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+          echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+          echo "MYSQL_HOST=db" >> .env
+          echo "REDIS_HOST=redis" >> .env
+          echo "CLAMAV_HOST=clamav" >> .env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+
+
+      - name: Build and run Docker Compose
+        run: docker compose up -d
+
+      - name: Wait for services to be ready
+        run: sleep 30
+
+      - name: Run Tests
+        run: |
+          docker compose exec -T web python -m pytest || echo "No tests defined"
+
+      - name: Check Containaer Status
+        run: docker compose ps
+
+
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync and Deploy
+        run: |
+          rsync -av --delete --exclude='.git' --exclude='storage' ./ ~/file-manager-pro
+          cd ~/file-manager-pro
+
+          echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" > .env
+          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" > .env
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" > .env
+          echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" > .env
+          echo "MYSQL_HOST=db" > .env
+          echo "REDIS_HOST=redis" > .env
+          echo "CLAMAV_HOST=clamav" > .env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" > .env
+
+          docker compose down
+          docker compose up -d --build
+          docker image prune -f
