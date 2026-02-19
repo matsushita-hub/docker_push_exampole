@@ -1,17 +1,35 @@
 <!DOCTYPE html>
-<html>
-<head><title>File Manager</title></head>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>File Manager</title>
+</head>
 <body>
+    <div style="text-align: right; margin-bottom: 10px;">
+        <!-- Keycloakから取得したユーザー名を表示 -->
+        ログイン中: <strong>{{ user.get('preferred_username', '不明なユーザー') }}</strong> 
+        | <a href="{{ url_for('logout') }}">ログアウト</a>
+    </div>
+
     <h1>Files</h1>
-    <a href="{{ url_for('upload') }}">Upload New File</a>
+    <nav>
+        <a href="{{ url_for('upload') }}">新規ファイルアップロード</a>
+    </nav>
     <hr>
+
     <form method="GET">
-        <input type="text" name="q" value="{{ query }}" placeholder="Search files...">
-        <button type="submit">Search</button>
+        <input type="text" name="q" value="{{ query }}" placeholder="ファイルを検索...">
+        <button type="submit">検索</button>
     </form>
+
     <ul>
         {% for file in files %}
-        <li>{{ file.original_name }} (Uploaded: {{ file.upload_date }})</li>
+        <li>
+            {{ file.original_name }} 
+            <small>(アップロード日: {{ file.upload_date.strftime('%Y-%m-%d %H:%M:%S') }})</small>
+        </li>
+        {% else %}
+        <li>ファイルが見つかりません。</li>
         {% endfor %}
     </ul>
 </body>

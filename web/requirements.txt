@@ -3,6 +3,7 @@ flask-sqlalchemy
 flask-wtf
 flask-session
 flask-caching
+flask-pyoidc
 pymysql
 redis
 clamd
@@ -12,3 +13,5 @@ werkzeug
 cryptography
 pytest
 pytest-flask
+flask-migrate
+celery
